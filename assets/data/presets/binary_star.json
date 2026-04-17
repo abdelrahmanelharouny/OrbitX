@@ -1,0 +1,33 @@
+{
+  "units": { "distance": "AU", "mass": "solar_mass", "time": "day" },
+  "bodies": [
+    {
+      "name": "StarA",
+      "type": "star",
+      "mass": 0.5,
+      "radius_km": 500000.0,
+      "position": [-0.1, 0.0, 0.0],
+      "velocity": [0.0, 0.0, -0.024],
+      "color": [1.0, 0.8, 0.6]
+    },
+    {
+      "name": "StarB",
+      "type": "star",
+      "mass": 0.5,
+      "radius_km": 500000.0,
+      "position": [0.1, 0.0, 0.0],
+      "velocity": [0.0, 0.0, 0.024],
+      "color": [0.7, 0.85, 1.0]
+    },
+    {
+      "name": "Planet",
+      "type": "planet",
+      "mass": 3.003e-6,
+      "radius_km": 6371.0,
+      "position": [1.2, 0.0, 0.0],
+      "velocity": [0.0, 0.0, 0.014],
+      "color": [0.3, 0.9, 0.4]
+    }
+  ]
+}
+

@@ -1,0 +1,28 @@
+{
+  "units": {
+    "distance": "AU",
+    "mass": "solar_mass",
+    "time": "day"
+  },
+  "bodies": [
+    {
+      "name": "Sun",
+      "type": "star",
+      "mass": 1.0,
+      "radius_km": 696340.0,
+      "position": [0.0, 0.0, 0.0],
+      "velocity": [0.0, 0.0, 0.0],
+      "color": [1.0, 0.85, 0.6]
+    },
+    {
+      "name": "Earth",
+      "type": "planet",
+      "mass": 3.003e-6,
+      "radius_km": 6371.0,
+      "position": [1.0, 0.0, 0.0],
+      "velocity": [0.0, 0.0, 0.01720209895],
+      "color": [0.3, 0.6, 1.0]
+    }
+  ]
+}
+
