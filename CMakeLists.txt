@@ -57,7 +57,9 @@ add_executable(AntiGravitySolarSystem
   src/debug/EnergyMonitor.cpp
   src/debug/OrbitTrailsSystem.cpp
   src/rendering/DebugRender2D.cpp
+  src/rendering/AdvancedDebugRenderer.cpp
   src/time/TimeController.cpp
+  src/visualization/AdvancedVisualization.cpp
 
   ${imgui_SOURCE_DIR}/imgui.cpp
   ${imgui_SOURCE_DIR}/imgui_demo.cpp
