@@ -3,7 +3,6 @@
 *.o
 *.obj
 *.a
-*.lib
 *.so
 *.dll
 *.exe
@@ -16,26 +15,11 @@ cmake-build-*/
 # Dependencies
 vendor/
 
-# Logs and temp files
+# Logs
 *.log
+
+# Temporary files
 *.tmp
-
-# Editor/IDE files
-.vscode/
-.idea/
 *.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Coverage reports
-coverage/
-htmlcov/
-*.coverage
-
-# Debug symbols
-*.dSYM/
-*.pdb
+*~
 ```
