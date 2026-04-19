@@ -57,8 +57,24 @@ add_executable(AntiGravitySolarSystem
   src/debug/EnergyMonitor.cpp
   src/debug/OrbitTrailsSystem.cpp
   src/rendering/DebugRender2D.cpp
+  src/rendering/PlanetRenderer.cpp
+  src/rendering/Shader.cpp
   src/time/TimeController.cpp
+  
+  # UI System (Phase 4)
+  src/ui/UISystem.cpp
+  src/ui/ControlPanel.cpp
+  src/ui/ObjectInfoPanel.cpp
+  src/ui/CameraControlPanel.cpp
+  src/ui/PresetManagerPanel.cpp
+  src/ui/DebugPanel.cpp
+  src/ui/StatusBar.cpp
 
+  # Procedural Generation (Phase 5)
+  src/procedural/NoiseGenerator.cpp
+  src/procedural/PlanetGenerator.cpp
+  src/procedural/PlanetInstance.cpp
+  
   ${imgui_SOURCE_DIR}/imgui.cpp
   ${imgui_SOURCE_DIR}/imgui_demo.cpp
   ${imgui_SOURCE_DIR}/imgui_draw.cpp

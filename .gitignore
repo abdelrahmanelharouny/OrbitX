@@ -1,18 +1,25 @@
-build/
-.vs/
-.vscode/
-out/
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-compile_commands.json
-*.user
-*.suo
-*.vcxproj*
-*.filters
-*.dir/
-*.ilk
-*.pdb
+```
+# Build artifacts
+*.o
 *.obj
+*.a
+*.so
+*.dll
+*.exe
+*.out
+
+# CMake build directory
+build/
+cmake-build-*/
+
+# Dependencies
+vendor/
+
+# Logs
 *.log
 
+# Temporary files
+*.tmp
+*.swp
+*~
+```
