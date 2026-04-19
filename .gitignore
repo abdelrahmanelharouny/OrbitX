@@ -1,18 +1,63 @@
+```
+# Build artifacts
 build/
-.vs/
-.vscode/
-out/
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-compile_commands.json
-*.user
-*.suo
-*.vcxproj*
-*.filters
-*.dir/
-*.ilk
-*.pdb
+dist/
+*.o
 *.obj
+*.a
+*.lib
+*.so
+*.dll
+*.exe
+*.out
+
+# Dependencies
+venv/
+.venv/
+.env
+.env.local
+*.env.*
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Logs
 *.log
 
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Compression
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
+```

@@ -58,6 +58,8 @@ add_executable(AntiGravitySolarSystem
   src/debug/OrbitTrailsSystem.cpp
   src/rendering/DebugRender2D.cpp
   src/time/TimeController.cpp
+  src/navigation/NavigationSystem.cpp
+  src/navigation/NavigationUI.cpp
 
   ${imgui_SOURCE_DIR}/imgui.cpp
   ${imgui_SOURCE_DIR}/imgui_demo.cpp
