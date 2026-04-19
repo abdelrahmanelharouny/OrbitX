@@ -58,6 +58,10 @@ add_executable(AntiGravitySolarSystem
   src/debug/OrbitTrailsSystem.cpp
   src/rendering/DebugRender2D.cpp
   src/time/TimeController.cpp
+  
+  # Procedural planet generation system
+  src/procedural/Noise.cpp
+  src/procedural/PlanetGenerator.cpp
 
   ${imgui_SOURCE_DIR}/imgui.cpp
   ${imgui_SOURCE_DIR}/imgui_demo.cpp
