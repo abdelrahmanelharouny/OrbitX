@@ -59,6 +59,7 @@ add_executable(AntiGravitySolarSystem
   src/rendering/DebugRender2D.cpp
   src/rendering/PlanetRenderer.cpp
   src/rendering/Shader.cpp
+  src/rendering/AdvancedDebugRenderer.cpp
   src/time/TimeController.cpp
   
   # UI System (Phase 4)
@@ -74,6 +75,17 @@ add_executable(AntiGravitySolarSystem
   src/procedural/NoiseGenerator.cpp
   src/procedural/PlanetGenerator.cpp
   src/procedural/PlanetInstance.cpp
+  src/procedural/Noise.cpp
+  
+  # Navigation System
+  src/navigation/NavigationSystem.cpp
+  src/navigation/NavigationUI.cpp
+  src/navigation/SimulationBodyProvider.cpp
+  src/navigation/SpaceshipNavigation.cpp
+  
+  # Visualization Components (Phase 6)
+  src/visualization/GravityFieldVisualizer.cpp
+  src/visualization/AdvancedVisualization.cpp
   
   ${imgui_SOURCE_DIR}/imgui.cpp
   ${imgui_SOURCE_DIR}/imgui_demo.cpp
@@ -97,11 +109,32 @@ target_compile_definitions(AntiGravitySolarSystem PRIVATE _USE_MATH_DEFINES)
 # Copy shader files to build directory
 file(COPY ${CMAKE_SOURCE_DIR}/src/rendering/shaders DESTINATION ${CMAKE_BINARY_DIR})
 
+# Copy assets to build directory
+file(COPY ${CMAKE_SOURCE_DIR}/assets/data DESTINATION ${CMAKE_BINARY_DIR})
 
-# Visualization components (Phase 6)
-target_sources(AntiGravitySolarSystem PRIVATE
-  src/visualization/GravityFieldVisualizer.cpp
-  src/visualization/GravityFieldVisualizer.h
-  src/debug/OrbitTrailsSystem.cpp
-  src/debug/OrbitTrailsSystem.h
-)
+# CPack configuration for packaging
+set(CPACK_PACKAGE_NAME "AntiGravitySolarSystem")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_VENDOR "Your Name")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "N-Body Gravitational Simulation with Procedural Planet Generation")
+set(CPACK_PACKAGE_CONTACT "your.email@example.com")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+
+# Platform-specific packaging
+if(WIN32)
+  set(CPACK_GENERATOR "ZIP")
+  set(CPACK_PACKAGE_INSTALL_DIRECTORY "AntiGravitySolarSystem")
+elseif(APPLE)
+  set(CPACK_GENERATOR "DragNDrop")
+  set(CPACK_BUNDLE_NAME "AntiGravitySolarSystem")
+else()
+  set(CPACK_GENERATOR "TGZ")
+endif()
+
+include(CPack)
+
+# Optional: Enable compiler warnings
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(AntiGravitySolarSystem PRIVATE -Wall -Wextra -Wpedantic)
+endif()
