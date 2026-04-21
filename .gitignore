@@ -17,6 +17,18 @@ vendor/
 
 # Logs
 *.log
+*.tmp
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage reports
+coverage/
+htmlcov/
+*.coverage
 
 # Temporary files
 *.tmp
