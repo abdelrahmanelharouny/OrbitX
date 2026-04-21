@@ -94,3 +94,14 @@ endif()
 
 target_compile_definitions(AntiGravitySolarSystem PRIVATE _USE_MATH_DEFINES)
 
+# Copy shader files to build directory
+file(COPY ${CMAKE_SOURCE_DIR}/src/rendering/shaders DESTINATION ${CMAKE_BINARY_DIR})
+
+
+# Visualization components (Phase 6)
+target_sources(AntiGravitySolarSystem PRIVATE
+  src/visualization/GravityFieldVisualizer.cpp
+  src/visualization/GravityFieldVisualizer.h
+  src/debug/OrbitTrailsSystem.cpp
+  src/debug/OrbitTrailsSystem.h
+)
