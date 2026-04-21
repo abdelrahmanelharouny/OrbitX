@@ -3,7 +3,6 @@
 *.o
 *.obj
 *.a
-*.lib
 *.so
 *.dll
 *.exe
@@ -21,14 +20,6 @@ vendor/
 
 # Temporary files
 *.tmp
-*.temp
-
-# OS specific
-.DS_Store
-Thumbs.db
-
-# Environment
-.env
-.env.local
-*.env.*
+*.swp
+*~
 ```
