@@ -3,7 +3,6 @@
 *.o
 *.obj
 *.a
-*.lib
 *.so
 *.dll
 *.exe
@@ -11,11 +10,12 @@
 
 # CMake build directory
 build/
+cmake-build-*/
 
 # Dependencies
 vendor/
 
-# Logs and temp files
+# Logs
 *.log
 *.tmp
 
@@ -30,8 +30,8 @@ coverage/
 htmlcov/
 *.coverage
 
-# Environment files
-.env
-.env.local
-*.env.*
+# Temporary files
+*.tmp
+*.swp
+*~
 ```
