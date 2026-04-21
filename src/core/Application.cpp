@@ -3,11 +3,15 @@
 #include "core/Timer.h"
 #include "simulation/SimulationManager.h"
 #include "rendering/DebugRender2D.h"
+#include "navigation/NavigationSystem.h"
+#include "navigation/NavigationUI.h"
+#include "navigation/SimulationNavigationAdapter.h"
 
 #include <GLFW/glfw3.h>
 #include <cstdio>
 #include <glm/geometric.hpp>
 #include <algorithm>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -30,7 +34,7 @@ bool Application::Init() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
-  m_window = glfwCreateWindow(1280, 720, "Anti-Gravity Solar System (bootstrap)", nullptr, nullptr);
+  m_window = glfwCreateWindow(1280, 720, "Anti-Gravity Solar System - Navigation", nullptr, nullptr);
   if (!m_window) {
     std::fprintf(stderr, "Failed to create window\n");
     return false;
@@ -53,6 +57,18 @@ bool Application::Init() {
   m_debugRenderer = std::make_unique<DebugRender2D>();
   m_debugRenderer->SetCenterWorldXZ(glm::dvec2(0.0, 0.0));
 
+  // Initialize navigation system
+  m_nav = std::make_unique<NavigationSystem>();
+  m_navAdapter = std::make_unique<SimulationNavigationAdapter>(m_sim.get());
+  
+  NavigationConfig navConfig;
+  if (!m_nav->Init(navConfig, m_navAdapter.get())) {
+    std::fprintf(stderr, "Failed to init navigation system\n");
+    return false;
+  }
+  
+  m_navUI = std::make_unique<NavigationUI>();
+
   // ImGui control panel (OpenGL2 backend to match current context)
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -66,9 +82,27 @@ bool Application::Init() {
 
 void Application::Run() {
   double nextEnergyPrint = 0.0;
+  double prevTime = Timer::NowSeconds();
+  
   while (m_running && m_window && !glfwWindowShouldClose(m_window)) {
     glfwPollEvents();
+    
+    // Calculate delta time in days for navigation consistency
+    double currentTime = Timer::NowSeconds();
+    double deltaTimeSec = currentTime - prevTime;
+    prevTime = currentTime;
+    
+    // Convert to days (simulation uses AU/day)
+    double deltaTimeDays = deltaTimeSec / 86400.0 * m_sim->GetTimeScale();
+    
     m_sim->TickFrame();
+    
+    // Handle navigation input and update
+    if (m_navigationEnabled && m_nav) {
+      HandleNavigationInput();
+      UpdateNavigation(deltaTimeDays);
+    }
+    
     UpdateCameraAndPicking();
 
     // Minimal render: clear color changes if anti-gravity enabled.
@@ -116,6 +150,14 @@ void Application::Run() {
       if (ImGui::SliderFloat("G (scaled)", &gf, 0.0f, 0.0015f, "%.7f")) {
         m_sim->SetGravityConstant(static_cast<double>(gf));
       }
+      
+      // Navigation toggle
+      ImGui::Separator();
+      bool navEnabled = m_navigationEnabled;
+      if (ImGui::Checkbox("Enable Navigation Mode", &navEnabled)) {
+        m_navigationEnabled = navEnabled;
+      }
+      ImGui::Text("Press 'M' to toggle navigation mode");
 
       // Presets
       if (ImGui::CollapsingHeader("Presets", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -185,9 +227,14 @@ void Application::Run() {
       }
     }
     ImGui::End();
+    
+    // Navigation UI (only when navigation is enabled)
+    if (m_navigationEnabled && m_navUI && m_nav) {
+      m_navUI->Render(*m_nav);
+    }
 
     // Debug overlay rendering (top-down XZ)
-    if (m_debugRenderer && m_sim->IsDebugEnabled()) {
+    if (m_debugRenderer && m_sim->IsDebugEnabled() && !m_navigationEnabled) {
       int w = 0, h = 0;
       glfwGetFramebufferSize(m_window, &w, &h);
 
@@ -222,6 +269,9 @@ void Application::Shutdown() {
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
 
+  m_nav.reset();
+  m_navUI.reset();
+  m_navAdapter.reset();
   m_sim.reset();
   if (m_window) {
     glfwDestroyWindow(m_window);
@@ -239,6 +289,42 @@ void Application::KeyCallback(GLFWwindow* window, int key, int scancode, int act
 }
 
 void Application::OnKey(int key, int action) {
+  // Handle key release for navigation input tracking
+  bool keyReleased = (action == GLFW_RELEASE);
+  
+  // Track navigation key states for continuous input
+  if (m_navigationEnabled) {
+    switch (key) {
+      case GLFW_KEY_W:
+        m_keyForward = !keyReleased;
+        break;
+      case GLFW_KEY_S:
+        m_keyBackward = !keyReleased;
+        break;
+      case GLFW_KEY_A:
+        m_keyLeft = !keyReleased;
+        break;
+      case GLFW_KEY_D:
+        m_keyRight = !keyReleased;
+        break;
+      case GLFW_KEY_Q:
+        m_keyUp = !keyReleased;
+        break;
+      case GLFW_KEY_E:
+        m_keyDown = !keyReleased;
+        break;
+      case GLFW_KEY_LEFT_SHIFT:
+      case GLFW_KEY_RIGHT_SHIFT:
+        m_keyBoost = !keyReleased;
+        break;
+      case GLFW_KEY_LEFT_CONTROL:
+      case GLFW_KEY_RIGHT_CONTROL:
+        m_keySlow = !keyReleased;
+        break;
+    }
+  }
+  
+  // Only process press events for toggle actions
   if (action != GLFW_PRESS) {
     return;
   }
@@ -256,9 +342,76 @@ void Application::OnKey(int key, int action) {
     return;
   }
 
+  // Navigation mode toggle
+  if (key == GLFW_KEY_M) {
+    m_navigationEnabled = !m_navigationEnabled;
+    // Reset key states when toggling
+    m_keyForward = m_keyBackward = m_keyLeft = m_keyRight = false;
+    m_keyUp = m_keyDown = m_keyBoost = m_keySlow = false;
+    return;
+  }
+
+  // Navigation-specific controls (only when navigation is enabled)
+  if (m_navigationEnabled && m_nav) {
+    // Mode cycling
+    if (key == GLFW_KEY_N) {
+      auto currentMode = m_nav->GetNavigationMode();
+      switch (currentMode) {
+        case NavigationMode::FreeFlight:
+          m_nav->SetNavigationMode(NavigationMode::Orbit);
+          break;
+        case NavigationMode::Orbit:
+          m_nav->SetNavigationMode(NavigationMode::Focus);
+          break;
+        case NavigationMode::Focus:
+          m_nav->SetNavigationMode(NavigationMode::FreeFlight);
+          break;
+      }
+    }
+    
+    // Lock nearest target
+    if (key == GLFW_KEY_T) {
+      int nearestIdx = m_nav->FindNearestTarget(m_nav->GetConfig().targetLockDistance);
+      if (nearestIdx >= 0) {
+        m_nav->LockTarget(nearestIdx);
+      }
+    }
+    
+    // Toggle orbit mode
+    if (key == GLFW_KEY_O) {
+      if (m_nav->GetNavigationMode() == NavigationMode::Orbit) {
+        m_nav->SetNavigationMode(NavigationMode::FreeFlight);
+      } else {
+        // Lock to selected body if available
+        if (m_sim->HasSelection()) {
+          m_navAdapter->LockToSelectedBody(*m_nav);
+        }
+        m_nav->SetNavigationMode(NavigationMode::Orbit);
+      }
+    }
+    
+    // Toggle focus mode - use different key to avoid conflict with debug forces
+    if (key == GLFW_KEY_K) {
+      if (m_nav->GetNavigationMode() == NavigationMode::Focus) {
+        m_nav->SetNavigationMode(NavigationMode::FreeFlight);
+      } else {
+        if (m_sim->HasSelection()) {
+          m_navAdapter->LockToSelectedBody(*m_nav);
+        }
+        m_nav->SetNavigationMode(NavigationMode::Focus);
+      }
+    }
+    
+    // Toggle camera mode
+    if (key == GLFW_KEY_C) {
+      m_nav->ToggleCameraMode();
+    }
+  }
+
+  // Original simulation controls
   if (key == GLFW_KEY_SPACE) {
     m_sim->TogglePaused();
-  } else if (key == GLFW_KEY_A) {
+  } else if (key == GLFW_KEY_B) {
     m_sim->ToggleAntiGravity();
   } else if (key == GLFW_KEY_EQUAL) { // speed up (next preset)
     m_sim->IncreaseSpeedPreset();
@@ -270,11 +423,11 @@ void Application::OnKey(int key, int action) {
     m_sim->SetGravityConstant(m_sim->GetGravityConstant() / 1.1);
   } else if (key == GLFW_KEY_D) {
     m_sim->ToggleDebugEnabled();
-  } else if (key == GLFW_KEY_T) {
+  } else if (key == GLFW_KEY_L) {
     m_sim->ToggleDebugTrails();
   } else if (key == GLFW_KEY_V) {
     m_sim->ToggleDebugVelocity();
-  } else if (key == GLFW_KEY_F) {
+  } else if (key == GLFW_KEY_J) {
     m_sim->ToggleDebugForces();
   } else if (key == GLFW_KEY_1) {
     m_sim->ResetToPreset("assets/data/solar_system.json");
@@ -284,16 +437,6 @@ void Application::OnKey(int key, int action) {
     m_sim->ResetToPreset("assets/data/presets/chaos.json");
   } else if (key == GLFW_KEY_4) {
     m_sim->ResetToPreset("assets/data/presets/anti_grav.json");
-  } else if (key == GLFW_KEY_F) { // focus selected (smooth)
-    if (m_sim->HasSelection()) {
-      const auto snap = m_sim->GetPhysicsSnapshot();
-      const int idx = m_sim->GetSelectedBodyIndex();
-      if (idx >= 0 && static_cast<size_t>(idx) < snap.positions.size()) {
-        m_focusWorldXZ = glm::dvec2(snap.positions[static_cast<size_t>(idx)].x,
-                                    snap.positions[static_cast<size_t>(idx)].z);
-        m_hasFocusTarget = true;
-      }
-    }
   }
 }
 
@@ -360,11 +503,18 @@ void Application::OnMouseButton(int button, int action, int mods) {
 }
 
 void Application::OnScroll(double yoffset) {
-  if (!m_debugRenderer) return;
   if (ImGui::GetIO().WantCaptureMouse) {
     return;
   }
-  // Zoom in/out with limits
+  
+  // In navigation mode, scroll controls camera zoom
+  if (m_navigationEnabled && m_nav) {
+    m_nav->ProcessScroll(static_cast<float>(yoffset * 5.0f));
+    return;
+  }
+  
+  // In top-down mode, scroll controls debug view scale
+  if (!m_debugRenderer) return;
   double scale = m_debugRenderer->GetScale();
   const double factor = (yoffset > 0.0) ? 1.1 : 1.0 / 1.1;
   scale *= factor;
@@ -403,6 +553,42 @@ void Application::UpdateCameraAndPicking() {
       m_hasFocusTarget = false;
     }
   }
+}
+
+void Application::UpdateNavigation(double deltaTime) {
+  if (!m_nav) return;
+  
+  // Update navigation system with delta time
+  m_nav->Update(deltaTime);
+}
+
+void Application::HandleNavigationInput() {
+  if (!m_nav) return;
+  
+  // Get current mouse position for mouse look
+  double x = 0.0, y = 0.0;
+  glfwGetCursorPos(m_window, &x, &y);
+  
+  // Calculate mouse delta for look control
+  float deltaX = static_cast<float>(x - m_lastMouseX);
+  float deltaY = static_cast<float>(y - m_lastMouseY);
+  
+  // Only apply mouse look when right mouse button is held (to avoid conflict with UI)
+  if (m_rightDrag) {
+    m_nav->ProcessMouseMovement(deltaX, deltaY);
+  }
+  
+  // Update last mouse position
+  m_lastMouseX = x;
+  m_lastMouseY = y;
+  
+  // Set keyboard input state
+  m_nav->SetKeyboardInput(
+    m_keyForward, m_keyBackward,
+    m_keyLeft, m_keyRight,
+    m_keyUp, m_keyDown,
+    m_keyBoost, m_keySlow
+  );
 }
 
 } // namespace agss
