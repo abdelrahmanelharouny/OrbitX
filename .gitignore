@@ -1,63 +1,25 @@
 ```
 # Build artifacts
-build/
-dist/
 *.o
 *.obj
 *.a
-*.lib
 *.so
 *.dll
 *.exe
 *.out
 
-# Dependencies
-venv/
-.venv/
-.env
-.env.local
-*.env.*
+# CMake build directory
+build/
+cmake-build-*/
 
-# IDE/Editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
+# Dependencies
+vendor/
 
 # Logs
 *.log
 
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Compression
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+# Temporary files
+*.tmp
+*.swp
+*~
 ```
