@@ -220,6 +220,15 @@ std::vector<glm::vec3> EnhancedOrbitTrails::GenerateSpline(
   return result;
 }
 
+// Static wrapper for GenerateSpline to be called without object
+std::vector<glm::vec3> EnhancedOrbitTrails::GenerateSplineStatic(
+    const std::vector<glm::vec3>& controlPoints,
+    int segmentsPerSpan) {
+  // Create a temporary instance to call the non-static method
+  EnhancedOrbitTrails temp;
+  return temp.GenerateSpline(controlPoints, segmentsPerSpan);
+}
+
 std::vector<EnhancedOrbitTrails::SmoothTrailVertex> EnhancedOrbitTrails::GetRenderData(int bodyIndex) const {
   std::vector<SmoothTrailVertex> result;
   

@@ -114,7 +114,7 @@ private:
   };
   
   std::vector<TrailData> m_trails;
-  
+
   glm::vec3 CatmullRomInterpolate(const glm::vec3& p0, const glm::vec3& p1,
                                    const glm::vec3& p2, const glm::vec3& p3,
                                    float t) const;
@@ -388,6 +388,7 @@ private:
   EventDetectionConfig m_config;
   std::vector<EventHighlight> m_pendingEvents;
   std::vector<ActiveHighlight> m_activeHighlights;
+  double m_currentTime = 0.0;  // Track simulation time for event timestamps
   
   void CheckCloseEncounters(const std::vector<glm::dvec3>& positions,
                             const std::vector<double>& masses,
